@@ -29,4 +29,6 @@ RUN \
 
 RUN \
   su ${USER} -c "yay -Syu --noconfirm" && \
-  su ${USER} -c "yay -S --noconfirm nvidia-580xx-dkms nvidia-580xx-utils nvidia-580xx-settings"
+  su ${USER} -c "yay -S --noconfirm nvidia-580xx-dkms nvidia-580xx-utils nvidia-580xx-settings" && \
+  pacman -Scc --noconfirm && \
+  rm -rf /home/${USER}/.cache/yay
