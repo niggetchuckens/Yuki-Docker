@@ -3,8 +3,8 @@ FROM archlinux:multilib-devel-20260111.0.480139
 
 # --- 1. Build Arguments & Environment ---
 ARG BUILD_USER=hime
-ARG BUILD_PASSWORD=hime
-ARG BUILD_HOSTNAME=yukios
+ARG BUILD_PASSWORD=completo
+ARG BUILD_HOSTNAME=YukiOS
 
 ENV USER=${BUILD_USER} \
     PASSWORD=${BUILD_PASSWORD} \
@@ -21,18 +21,19 @@ ENV USER=${BUILD_USER} \
 RUN pacman -Syu --noconfirm base-devel sudo git curl wget nano libglvnd dbus supervisor mesa && \
     useradd -m -G wheel ${USER} && \
     echo -e "${USER}:${PASSWORD}" | chpasswd && \
-    echo '%wheel ALL=(ALL:ALL) NOPASSWD: ALL' > /etc/sudoers && \
+    echo 'root ALL=(ALL:ALL) ALL' > /etc/sudoers && \
+    echo '%wheel ALL=(ALL:ALL) NOPASSWD: ALL' >> /etc/sudoers && \
     echo "${HOSTNAME}" > /etc/hostname
 
 # --- 3. Setup Yay (AUR Helper) ---
-RUN cd /home/${USER} && \
-    sudo -u ${USER} git clone https://aur.archlinux.org/yay-bin.git && \
+WORKDIR /home/${USER}
+RUN sudo -u ${USER} git clone https://aur.archlinux.org/yay-bin.git && \
     cd yay-bin && \
     sudo -u ${USER} makepkg -si --noconfirm && \
-    cd .. && rm -rf yay-bin
+    cd .. && \
+    rm -rf yay-bin
 
 # --- 4. Install Nvidia Open Drivers & Hyprland ---
-# Using nvidia-open-dkms per your request for the open driver path
 RUN sudo -u ${USER} yay -S --noconfirm \
     nvidia-open-dkms nvidia-utils nvidia-settings \
     hyprland kitty xorg-xwayland qt5-wayland qt6-wayland \

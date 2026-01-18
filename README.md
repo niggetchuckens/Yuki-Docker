@@ -1,63 +1,53 @@
 # Yuki Project
 
-This project defines a set of custom Arch Linux-based Docker images designed for development and potentially desktop environments.
+This project defines a custom Arch Linux-based Docker image designed for a headless cloud gaming or development environment using **Hyprland** and **Sunshine**.
 
-## Directory Structure
+## Overview
 
-The project is organized into modular Docker contexts within the `docker-images/` directory:
+The `Dockerfile` in the root directory builds a complete environment featuring:
 
-- **os-base/**: The foundation image.
-- **os-de/**: An extension image (Desktop Environment configuration).
+- **Base OS:** Arch Linux (`multilib-devel`)
+- **Desktop Environment:** Hyprland (Wayland compositor)
+- **Streaming Host:** Sunshine
+- **Driver Support:** Nvidia Open Drivers
+- **Process Management:** Supervisord (manages D-Bus, Hyprland, and Sunshine)
+- **User Environment:** Creates a sudo-enabled user with `yay` configured.
 
-## Images
+## Configuration
 
-### os-base
+The image uses `supervisord` to manage services. The entrypoint starts:
+1. `dbus-daemon`
+2. `hyprland` (Headless)
+3. `sunshine`
 
-Located in `docker-images/os-base/Dockerfile`.
+## Build Arguments
 
-This is the base image derived from `archlinux:multilib-devel`. It sets up a complete development environment including:
-
-- **Core Tools:** `base-devel`, `sudo`, `git`, `curl`, `wget`.
-- **Editors & Terminals:** `nvim`, `kitty`.
-- **Driver Support:** Nvidia 580xx series drivers and utils.
-- **AUR Helper:** `yay` pre-installed and configured for the build user.
-- **User Configuration:** Creates a sudo-enabled user based on build arguments.
-
-**Build Arguments:**
-- `BUILD_USER`: The username to create inside the container.
-- `BUILD_HOSTNAME`: The hostname for the container.
-
-### os-de
-
-Located in `docker-images/os-de/Dockerfile`.
-
-This image builds upon the base image (passed via `OS_IMAGE` arg) to layer on desktop environment customizations.
-
-**Features:**
-- Inherits the user configuration from `os-base`.
-- Clones personal repositories.
-- *(Work in Progress)* Installs additional packages via `yay`.
-
-**Build Arguments:**
-- `OS_IMAGE`: The base image to use (e.g., the built `os-base` image).
-- `BUILD_USER`: The username matching the base image.
+| Argument | Default | Description |
+|----------|---------|-------------|
+| `BUILD_USER` | `hime` | The username to create inside the container. |
+| `BUILD_PASSWORD` | `hime` | The password for the user. |
+| `BUILD_HOSTNAME` | `yukios` | The hostname for the container. |
 
 ## Usage
 
-To build the images, you would typically run commands similar to:
+### Build the Image
 
 ```bash
-# Build os-base
-docker build \
-  --build-arg BUILD_USER=myuser \
-  --build-arg BUILD_HOSTNAME=myhost \
-  -t yuki-os-base \
-  docker-images/os-base
-
-# Build os-de
-docker build \
-  --build-arg OS_IMAGE=yuki-os-base \
-  --build-arg BUILD_USER=myuser \
-  -t yuki-os-de \
-  docker-images/os-de
+docker build -t yuki .
 ```
+
+### Run the Container
+
+Since this image relies on Nvidia drivers and hardware acceleration, you'll need the Nvidia Container Toolkit.
+
+```bash
+docker run -d \
+  --gpus all \
+  --cap-add=SYS_ADMIN \
+  -p 47984-47990:47984-47990/tcp \
+  -p 47998-48010:47998-48010/udp \
+  --name yuki-instance \
+  yuki
+```
+
+*Note: Port mappings correspond to Sunshine default ports.*
