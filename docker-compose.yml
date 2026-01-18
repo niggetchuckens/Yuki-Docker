@@ -1,23 +1,24 @@
 services:
-  yuki:
-    image: himee3/yuki:1.0.0
+  yukios:
+    image: himee3/yukios:latest
     container_name: yuki-os
     privileged: true
     runtime: nvidia
     network_mode: host
     ipc: host
-    shm_size: '4gb'
+    shm_size: '8gb' 
     
     environment:
       - DISPLAY=:99
       - NVIDIA_DRIVER_CAPABILITIES=all
       - NVIDIA_VISIBLE_DEVICES=all
       - USER=hime # Must match the BUILD_USER in your Dockerfile 'hime' by default (so if you want to use another user need to rebuild the image from 'https://github.com/niggetchuckens/Yuki-Docker')
+      - XDG_RUNTIME_DIR=/tmp/runtime-hime
       - WLR_BACKEND=headless
       - WLR_LIBINPUT_NO_DEVICES=1
-      - XDG_RUNTIME_DIR=/tmp/runtime-hime
       - GBM_BACKEND=nvidia-drm
       - __GLX_VENDOR_LIBRARY_NAME=nvidia
+      - _JAVA_AWT_WM_NONREPARENTING=1 
 
     devices:
       - /dev/uinput:/dev/uinput
@@ -30,9 +31,10 @@ services:
 
     volumes:
       - /run/udev:/run/udev:ro
-      - /run/dbus:/run/dbus:ro
+      - /run/dbus/system_bus_socket:/run/dbus/system_bus_socket:ro
       - /home/hime/.config/sunshine:/home/hime/.config/sunshine
-      - /tmp/.X11-unix:/tmp/.X11-unix 
+      - /home/hime/code:/home/hime/code 
+      - /tmp/.X11-unix:/tmp/.X11-unix
 
     deploy:
       resources:
